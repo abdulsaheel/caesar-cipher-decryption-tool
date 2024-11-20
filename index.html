@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Decrypt Caesar Cipher text with an easy-to-use tool. Enter the cipher text and get all possible decryptions with the best matching words from the dictionary.">
+    <meta name="keywords" content="Caesar cipher, cipher decryption, decryption tool, decrypt cipher text, cryptography, Caesar cipher decryption, word matching">
+    <meta name="author" content="Developer">
+    <meta property="og:title" content="Caesar Cipher Decryption Tool">
+    <meta property="og:description" content="Decrypt Caesar Cipher text with an easy-to-use tool. Get possible decryptions and find the best match using a word list.">
+    <meta property="og:image" content="path/to/your/image.jpg"> <!-- Replace with your image URL -->
+    <meta property="og:url" content="http://yourwebsite.com/caesar-cipher-decryption"> <!-- Replace with your page URL -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Caesar Cipher Decryption Tool">
+    <meta name="twitter:description" content="Decrypt Caesar Cipher text with an easy-to-use tool. Get possible decryptions and find the best match using a word list.">
+    <meta name="twitter:image" content="path/to/your/image.jpg"> <!-- Replace with your image URL -->
+    <meta name="twitter:creator" content="@YourTwitterHandle">
+    <title>Caesar Cipher Decryption Tool</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #121212;
+            color: #E0E0E0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 400;
+            margin-bottom: 20px;
+            font-family: 'Press Start 2P', cursive;
+            text-align: center;
+            color: #FF7043;
+        }
+
+        p {
+            font-size: 1.2rem;
+            color: #E0E0E0;
+        }
+
+        input {
+            padding: 10px;
+            font-size: 1.1rem;
+            border: 2px solid #FF7043;
+            border-radius: 5px;
+            background-color: #1F1F1F;
+            color: #E0E0E0;
+            width: 80%;
+            max-width: 400px;
+            margin: 10px 0;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: #FFCC80;
+        }
+
+        button {
+            padding: 12px 20px;
+            font-size: 1rem;
+            color: #FFF;
+            background-color: #FF7043;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #FFCC80;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            margin-top: 30px;
+            font-family: 'Press Start 2P', cursive;
+            color: #FF7043;
+        }
+
+        pre {
+            background-color: #1F1F1F;
+            border-radius: 5px;
+            padding: 20px;
+            font-size: 1rem;
+            width: 80%;
+            max-width: 500px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            color: #E0E0E0;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .footer {
+            font-size: 0.9rem;
+            color: #B0B0B0;
+            margin-top: 50px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Caesar Cipher Decryption Tool</h1>
+    <p>Enter Cipher Text:</p>
+    <input type="text" id="cipherText" value="BYCYJ IQBJ QCEDW SQIX" size="30">
+    <button onclick="printAllShifts()">Decrypt</button>
+    
+    <h2>Possible Decryptions:</h2>
+    <pre id="output"></pre>
+
+    <div class="footer">Made with ❤️ by Developer</div>
+
+    <script>
+        // URL to fetch word list (hardcoded)
+        const wordListUrl = 'words.txt'; 
+
+        let wordList = [];
+
+        // Fetch word list from the provided URL
+        async function fetchWordList() {
+            try {
+                const response = await fetch(wordListUrl);
+                const text = await response.text();
+                // Split the word list into an array by newlines and make lowercase
+                wordList = text.split('\n').map(word => word.trim().toLowerCase());
+            } catch (error) {
+                console.error('Error fetching word list:', error);
+            }
+        }
+
+        // Function to decrypt the cipher text with a given shift
+        function caesarCipher(text, shift) {
+            let decryptedText = "";
+            for (let i = 0; i < text.length; i++) {
+                let char = text[i];
+                if (/[a-zA-Z]/.test(char)) {
+                    // Determine if the character is upper or lower case
+                    let shiftBase = (char >= 'A' && char <= 'Z') ? 'A' : 'a';
+                    let charCode = char.charCodeAt(0);
+                    let newCharCode = ((charCode - shiftBase.charCodeAt(0) - shift + 26) % 26) + shiftBase.charCodeAt(0);
+                    decryptedText += String.fromCharCode(newCharCode);
+                } else {
+                    // Non-alphabetic characters (spaces, punctuation) remain unchanged
+                    decryptedText += char;
+                }
+            }
+            return decryptedText;
+        }
+
+        // Function to count matched words from the word list in the decrypted text
+        function countMatchingWords(decryptedText) {
+            const words = decryptedText.toLowerCase().split(/\s+/);
+            return words.filter(word => wordList.includes(word)).length;
+        }
+
+        // Function to print all shifts and find the best match
+        async function printAllShifts() {
+            // Fetch word list before processing
+            await fetchWordList();
+            
+            const cipherText = document.getElementById("cipherText").value;
+            let output = "";
+            let bestMatches = [];
+
+            // Check all possible shifts
+            for (let shift = 1; shift <= 25; shift++) {
+                const decrypted = caesarCipher(cipherText, shift);
+                const matchCount = countMatchingWords(decrypted);
+                
+                // Only include shifts with at least one match
+                if (matchCount > 0) {
+                    bestMatches.push({ shift, decrypted, matchCount });
+                }
+            }
+
+            // Sort by match count in descending order (highest match first)
+            bestMatches.sort((a, b) => b.matchCount - a.matchCount);
+
+            // Print the results with the highest match first
+            bestMatches.forEach(result => {
+                output += `${result.decrypted} (Matches: ${result.matchCount}) \n`;
+            });
+
+            document.getElementById("output").textContent = output;
+        }
+    </script>
+</body>
+</html>
